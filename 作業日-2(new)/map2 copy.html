@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Complex Marker Icons</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyACg14d8iQc1EB9QX37NBeZp6ekF5EBTJ8&callback=initMap&libraries=&v=weekly"
+        defer>
+        </script>
+    <style type="text/css">
+        /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+
+        /* Optional: Makes the sample page fill the window. */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <script>
+        // The following example creates complex markers to indicate beaches near
+        // Sydney, NSW, Australia. Note that the anchor is set to (0,32) to correspond
+        // to the base of the flagpole.
+        let zoomCenterObj = {};
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById("map"), zoomCenterObj);
+            setMarkers(map);
+        }
+        // Data for the markers consisting of a name, a LatLng and a zIndex for the
+        // order in which these markers should display on top of each other.
+        let beaches = [];
+        function setMarkers(map) {
+            // Adds markers to the map.
+            // Marker sizes are expressed as a Size of X,Y where the origin of the image
+            // (0,0) is located in the top left of the image.
+            // Origins, anchor positions and coordinates of the marker increase in the X
+            // direction to the right and in the Y direction down.
+            // const image = {
+            //     //url: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+
+            //     // This marker is 20 pixels wide by 32 pixels high.
+            //     size: new google.maps.Size(20, 32),
+            //     // The origin for this image is (0, 0).
+            //     origin: new google.maps.Point(0, 0),
+            //     // The anchor for this image is the base of the flagpole at (0, 32).
+            //     anchor: new google.maps.Point(0, 32),
+            // };
+            let images = [{
+                url: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+                size: new google.maps.Size(20, 32),
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(0, 32),
+            }, {
+                url: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+                size: new google.maps.Size(20, 32),
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(0, 32),
+            }, {
+                url: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+                size: new google.maps.Size(20, 32),
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(0, 32),
+            }, {
+                url: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+                size: new google.maps.Size(20, 32),
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(0, 32),
+            }]
+            // Shapes define the clickable region of the icon. The type defines an HTML
+            // <area> element 'poly' which traces out a polygon as a series of X,Y points.
+            // The final coordinate closes the poly by connecting to the first coordinate.
+            const shape = {
+                coords: [1, 1, 1, 20, 18, 20, 18, 1],
+                type: "poly",
+            };
+
+            for (let i = 0; i < beaches.length; i++) {
+                const beach = beaches[i];
+                let image = images[3];
+                if (beach[8] != null) {
+                    if (beach[8].includes("觀光工廠")) {
+                        image = images[0];
+                    }
+                    if (beach[8].includes("生態")) {
+                        image = images[1];
+                    }
+                    if (beach[8].includes("廟")) {
+                        image = images[2];
+                    }
+                }
+                let obj = {
+                    position: {
+                        lat: beach[1],
+                        lng: beach[2]
+                    },
+                    map,
+                    icon: image,
+                    shape: shape,
+                    title: beach[0],
+                    zIndex: beach[3],
+                };
+                let contentString = "";
+                contentString = '<ul>' + '<li>' + `名字:${beach[0]}` + '</li>'
+                    + '<li>' + `地址:${beach[7]}` + '</li>'
+                    + '<li>' + `描述:${beach[4]}` + '</li>'
+                    + '</ul>'
+                const infowindow = new google.maps.InfoWindow({
+                    content: contentString,
+                });
+                let marker = new google.maps.Marker(obj);
+                marker.addListener("click", () => {
+                    infowindow.open(obj, marker);
+                });
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="wrap">
+        <select id="region"></select>
+        <select id="town">
+        </select>
+    </div>
+    <div id="map">
+    </div>
+    <script type="module">
+        import { $g, $c_option } from './Module/helpers.js'
+        let url = "http://bsopendata.azurewebsites.net/api/LeisureTravel/Attractions";
+
+        window.onload = function () {
+            get_json();
+        }
+
+        let jsonObj = {};
+
+        function get_json() {
+            let promise1 = new Promise(function (resovle, reject) {
+                let xhr = new XMLHttpRequest();
+                xhr.onload = function () {
+                    resovle(JSON.parse(this.response));
+                }
+                xhr.onerror = function () {
+                    reject(this.status);
+                }
+                xhr.open('get', url);
+                xhr.send();
+            })
+            promise1
+                .then(result => {
+                    jsonObj = result;
+                    console.log(result);
+                    transefomArray(jsonObj.XML_Head.Infos.Info);
+                    createSelectArray(transformArray);
+                    console.log(selectionObj);
+                    createSelection(selectionObj);
+                    createzoomCenterObj(7, null);
+                    drawMap(transformArray);
+                })
+        }
+        let transformArray = [];
+        function transefomArray(oringinArray) {
+            debugger;
+            oringinArray.forEach(ele => {
+                let obj = {};
+                obj.name = ele.Name;
+                obj.add = ele.Add;
+                obj.description = ele.Description;
+                obj.orgclass = ele.Orgclass;
+                obj.px = ele.Py;
+                obj.py = ele.Px;
+                obj.region = ele.Region;
+                obj.town = ele.Town;
+                transformArray.push(obj);
+            });
+        }
+        let selectionObj = {};
+        function createSelectArray(transformArray) {
+            let aaa = new Set();
+            transformArray.forEach(ele => {
+                aaa.add(ele.orgclass);
+                let keyArray = Object.keys(selectionObj);
+                if (ele.region != null) {
+                    if (keyArray.includes(ele.region)) {
+                        selectionObj[ele.region].add(ele.town);
+                    }
+                    else {
+                        selectionObj[ele.region] = new Set();
+                        selectionObj[ele.region].add(ele.town);
+                    }
+                }
+            })
+            console.log(aaa);
+        }
+
+        function createSelection(selectionObj) {
+            $c_option($g('#region'), "---請選擇地區---");
+            let keyArray = Object.keys(selectionObj);
+            keyArray.forEach(ele => {
+                let option = $c_option($g('#region'), ele);
+            });
+            $c_option($g('#town'), "---請選擇鄉鎮---");
+            $g('#region').addEventListener('change', function (event) {
+                setMapArray(transformArray, event.target.value, '');
+                drawMap(mapArray);
+                if (event.target.value != "---請選擇地區---") {
+                    let select1 = $g('#town');
+                    select1.innerHTML = null;
+                    $c_option(select1, "---請選擇鄉鎮---");
+                    selectionObj[event.target.value].forEach(p => {
+                        let town_option = $c_option(select1, p);
+                        select1.add(town_option, null);
+                    })
+                    select1.addEventListener('change', function (event) {
+                        if (event.target.value == "---請選擇鄉鎮---") {
+                            setMapArray(transformArray, $g('#region').value, '');
+                            drawMap(mapArray);
+                        }
+                        else {
+                            setMapArray(transformArray, $g('#region').value, select1.value);
+                            drawMap(mapArray);
+                        }
+                    });
+                    $g('#wrap').appendChild(select1);
+                }
+                else {
+                    createzoomCenterObj(7, null);
+                    drawMap(transformArray);
+                }
+            })
+        }
+        let mapArray = [];
+        let pxArray = [];
+        let pyArray = [];
+        function setMapArray(transformArray, filter1, filter2) {
+            mapArray = [];
+            pxArray = [];
+            pyArray = [];
+            debugger;
+            if (filter2 != "") {
+                transformArray.forEach(ele => {
+                    if (ele.region == filter1 && ele.town == filter2) {
+                        mapArray.push(ele);
+                        pxArray.push(ele.px);
+                        pyArray.push(ele.py);
+                    }
+                })
+                setCenterObj(pxArray, pyArray);
+                createzoomCenterObj(12, centerObj);
+            }
+            else {
+                transformArray.forEach(ele => {
+                    if (ele.region == filter1) {
+                        mapArray.push(ele);
+                        pxArray.push(ele.px);
+                        pyArray.push(ele.py);
+                    }
+                });
+                setCenterObj(pxArray, pyArray);
+                createzoomCenterObj(10, centerObj);
+            }
+        }
+        let centerObj = {};
+        function setCenterObj(pxArray, pyArray) {
+            let xcount = 0;
+            let px = 0
+            px = pxArray.reduce((acc, cur) => {
+                xcount = xcount + 1;
+                return acc + cur;
+            }, 0)
+            px = px / xcount;
+            let ycount = 0;
+            let py = 0;
+            py = pyArray.reduce((acc, cur) => {
+                ycount = ycount + 1;
+                return acc + cur;
+            }, 0)
+            py = py / ycount;
+            console.log(px);
+            console.log(py);
+            centerObj = { lat: px, lng: py };
+        }
+
+        function createzoomCenterObj(zoom_num, centerObj) {
+            if (centerObj == null) {
+                zoomCenterObj = {
+                    zoom: zoom_num,
+                    center: {
+                        lat: 25.0423174,
+                        lng: 121.5356573
+                    }
+                }
+            }
+            else {
+                zoomCenterObj = {
+                    zoom: zoom_num,
+                    center: centerObj
+                }
+            }
+        }
+
+        function drawMap(mapArray) {
+            beaches = [];
+            let count = 0;
+            mapArray.forEach(ele => {
+                count = count + 1;
+                let insidearray = [];
+                insidearray.push(ele.name);
+                insidearray.push(ele.px);
+                insidearray.push(ele.py);
+                insidearray.push(count);
+                insidearray.push(ele.description);
+                insidearray.push(ele.region);
+                insidearray.push(ele.town);
+                insidearray.push(ele.add);
+                insidearray.push(ele.orgclass);
+                beaches.push(insidearray);
+            })
+            console.log(beaches);
+            initMap();
+        }
+    </script>
+</body>
+
+</html>
